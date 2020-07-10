@@ -1,21 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using TrainYourself.API.Configuration;
-using TrainYourself.API.Repositories;
-using TrainYourself.API.Services;
 
 namespace TrainYourself.API
 {
@@ -28,9 +21,18 @@ namespace TrainYourself.API
 
         public IConfiguration Configuration { get; }
 
+        private bool SwaggerEnabled => Configuration.GetValue<bool>("Swagger:Enabled");
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc(options =>
+            {
+                //options.Filters.Add(typeof(ValidationFilter));
+                //options.Filters.Add(typeof(PaginationFilter));
+                options.EnableEndpointRouting = false;
+            });
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                {
@@ -39,36 +41,51 @@ namespace TrainYourself.API
                        ValidateIssuer = true,
                        ValidateAudience = true,
                        ValidateLifetime = true,
-                       ValidIssuer = Configuration["Jwt:Issuer"],
-                       ValidAudience = Configuration["Jwt:Issuer"],
-                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
+                       ValidIssuer = Configuration["JwtConfiguration:Issuer"],
+                       ValidAudience = Configuration["JwtConfiguration:Issuer"],
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtConfiguration:Key"]))
                    };
                });
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IAuthService, JwtAuthService>();
+
+            if (SwaggerEnabled)
+            {
+                services.AddSwaggerGen(options =>
+                {
+                    options.SwaggerDoc("v1", new OpenApiInfo{Title = "TrainYourself API", Version = "v1"});
+                });
+            }
+
             services.AddControllers();
 
-            services.AddSwaggerGen();
             ConfigureSettings.RegisterSettings(services, Configuration);
+            RegisterServices.RegisterAllServices(services, Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(x =>
+
+            if (SwaggerEnabled)
             {
-                x.SwaggerEndpoint("/swagger/v1/swagger.json", "TrainYourself Api V1");
-            });
+                app.UseSwagger()
+                   .UseSwaggerUI(x =>
+                    {
+                        x.SwaggerEndpoint("/swagger/v1/swagger.json", "TrainYourself Api V1");
+                    })
+                   .UseRewriter(new RewriteOptions().AddRedirect("^$", "swagger"));
+            }
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseMiddleware<CorrelationIdMiddleware>(); for future
 
             app.UseRouting();
 
+            app.UseCors();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
