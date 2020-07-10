@@ -12,8 +12,8 @@ namespace TrainYourself.API.Configuration
     {
         public static void RegisterSettings(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.Configure<UsersDatabaseSettings>(configuration.GetSection(nameof(UsersDatabaseSettings)));
-
+            serviceCollection.Configure<UsersDatabaseConfiguration>(configuration.GetSection(nameof(UsersDatabaseConfiguration)));
+            serviceCollection.Configure<JwtConfiguration>(configuration.GetSection(nameof(JwtConfiguration)));
         }
     }
 }

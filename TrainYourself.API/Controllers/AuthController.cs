@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using TrainYourself.API.Dtos;
 using TrainYourself.API.Models;
 using TrainYourself.API.Repositories;
+using TrainYourself.API.Services;
 
 namespace TrainYourself.API.Controllers
 {
@@ -14,21 +18,21 @@ namespace TrainYourself.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _authRepository;
+        private readonly IAuthRepository _repo;
+        private readonly IAuthService _service;
 
-        public AuthController(IAuthRepository authRepository)
+        public AuthController(IAuthRepository repo, IAuthService service)
         {
-            _authRepository = authRepository;
+            _repo = repo;
+            _service = service;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register (UserForRegisterDto user)
         {
-            // validate request
-
             user.Username = user.Username.ToLower();
 
-            if (await _authRepository.UserExists(user.Username))
+            if (await _repo.UserExists(user.Username))
                 return BadRequest("User already exists");
 
             var userToCreate = new User
@@ -37,9 +41,21 @@ namespace TrainYourself.API.Controllers
                 Email = user.Email
             };
 
-            var created = await _authRepository.Register(userToCreate, user.Password);
+            var created = await _repo.Register(userToCreate, user.Password);
 
             return StatusCode(201);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(UserForLoginDto user)
+        {
+            user.Username = user.Username.ToLower();
+            var token = await _service.AuthenticateUser(user);
+
+            if (string.IsNullOrEmpty(token))
+                return Unauthorized();
+
+            return Ok(new {token});
         }
     }
 }

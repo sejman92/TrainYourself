@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using TrainYourself.API.Configuration;
 using TrainYourself.API.Repositories;
+using TrainYourself.API.Services;
 
 namespace TrainYourself.API
 {
@@ -44,6 +45,7 @@ namespace TrainYourself.API
                    };
                });
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IAuthService, JwtAuthService>();
             services.AddControllers();
 
             services.AddSwaggerGen();
