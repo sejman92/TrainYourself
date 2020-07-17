@@ -9,7 +9,6 @@ namespace TrainYourself.API.Models
         [BsonId]
         [BsonRepresentation(BsonType.String)]
         ObjectId Id { get; set; }
-        string Name { get; set; }
         DateTime CreatedAt { get; }
     }
 }

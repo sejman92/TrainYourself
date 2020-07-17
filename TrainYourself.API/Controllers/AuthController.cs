@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using TrainYourself.API.Dtos;
 using TrainYourself.API.Models;
-using TrainYourself.API.Repositories;
 using TrainYourself.API.Services;
 
 namespace TrainYourself.API.Controllers
@@ -18,12 +10,10 @@ namespace TrainYourself.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _repo;
         private readonly IAuthService _service;
 
-        public AuthController(IAuthRepository repo, IAuthService service)
+        public AuthController( IAuthService service)
         {
-            _repo = repo;
             _service = service;
         }
 
@@ -32,7 +22,7 @@ namespace TrainYourself.API.Controllers
         {
             user.Username = user.Username.ToLower();
 
-            if (await _repo.UserExists(user.Username))
+            if (await _service.UserExists(user.Username))
                 return BadRequest("User already exists");
 
             var userToCreate = new User
@@ -41,7 +31,7 @@ namespace TrainYourself.API.Controllers
                 Email = user.Email
             };
 
-            var created = await _repo.Register(userToCreate, user.Password);
+            var created = await _service.Register(userToCreate, user.Password);
 
             return StatusCode(201);
         }

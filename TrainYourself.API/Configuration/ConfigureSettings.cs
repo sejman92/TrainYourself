@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace TrainYourself.API.Configuration
 {
@@ -7,7 +8,11 @@ namespace TrainYourself.API.Configuration
     {
         public static void RegisterSettings(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.Configure<UsersDatabaseConfiguration>(configuration.GetSection(nameof(UsersDatabaseConfiguration)));
+            serviceCollection.Configure<MongoDatabaseConfiguration>(configuration.GetSection(nameof(MongoDatabaseConfiguration)));
+
+            serviceCollection.AddSingleton<IMongoDatabaseConfiguration>(sp =>
+                sp.GetRequiredService<IOptions<MongoDatabaseConfiguration>>().Value);
+
             serviceCollection.Configure<JwtConfiguration>(configuration.GetSection(nameof(JwtConfiguration)));
         }
     }

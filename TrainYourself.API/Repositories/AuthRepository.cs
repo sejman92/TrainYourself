@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System.Threading.Tasks;
+using TrainYourself.API.Common;
 using TrainYourself.API.Configuration;
 using TrainYourself.API.Models;
 
@@ -10,12 +11,10 @@ namespace TrainYourself.API.Repositories
     {
         private readonly IMongoCollection<User> _users;
 
-        public AuthRepository(IOptions<UsersDatabaseConfiguration> dbSettings)
+        public AuthRepository(IOptions<MongoDatabaseConfiguration> dbSettings)
         {
-            var client = new MongoClient(dbSettings.Value.ConnectionString);
-            var db = client.GetDatabase(dbSettings.Value.DatabaseName);
-
-            _users = db.GetCollection<User>(dbSettings.Value.CollectionName);
+            var db = new MongoClient(dbSettings.Value.ConnectionString).GetDatabase(dbSettings.Value.DatabaseName);
+            _users = db.GetCollection<User>(CollectionNamePicker.GetCollectionName(typeof(User)));
         }
 
         public async Task<User> Login(string username, string password)
