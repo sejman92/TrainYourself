@@ -11,6 +11,7 @@ namespace TrainYourself.API.Configuration
         {
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IAuthService, JwtAuthService>();
+            services.AddScoped(typeof(IMongoRepository<>), typeof(MongoRepository<>));
         }
     }
 }
