@@ -1,24 +1,20 @@
-﻿using Microsoft.AspNetCore.Connections.Features;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using System;
 using System.Threading.Tasks;
+using TrainYourself.API.Common;
 using TrainYourself.API.Configuration;
 using TrainYourself.API.Models;
 
 namespace TrainYourself.API.Repositories
 {
     public class AuthRepository : IAuthRepository
-
     {
         private readonly IMongoCollection<User> _users;
 
-        public AuthRepository(IOptions<UsersDatabaseSettings> dbSettings)
+        public AuthRepository(IOptions<MongoDatabaseConfiguration> dbSettings)
         {
-            var client = new MongoClient(dbSettings.Value.ConnectionString);
-            var db = client.GetDatabase(dbSettings.Value.DatabaseName);
-
-            _users = db.GetCollection<User>(dbSettings.Value.CollectionName);
+            var db = new MongoClient(dbSettings.Value.ConnectionString).GetDatabase(dbSettings.Value.DatabaseName);
+            _users = db.GetCollection<User>(CollectionNamePicker.GetCollectionName(typeof(User)));
         }
 
         public async Task<User> Login(string username, string password)
@@ -28,15 +24,12 @@ namespace TrainYourself.API.Repositories
             if (user == null)
                 return null;
 
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-                return null;
-
-            return user;
+            return !VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt) ? null : user;
         }
 
         public async Task<User> Register(User user, string password)
         {
-            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+            CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
             
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;

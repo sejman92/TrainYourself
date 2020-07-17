@@ -1,12 +1,15 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using System;
+using MongoDB.Bson;
+using TrainYourself.API.Common;
 
 namespace TrainYourself.API.Models
 {
-    public class User
+    [BsonCollection("Users")]
+    public class User : IDocument
     {
-        [BsonId]
-        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
-        public string Id { get; set; }
+        public ObjectId Id { get; set; }
+        public string Name { get; set; }
+        public DateTime CreatedAt => Id.CreationTime;
         public string Username { get; set; }
         public string Email { get; set; }
         public byte[] PasswordHash { get; set; }
