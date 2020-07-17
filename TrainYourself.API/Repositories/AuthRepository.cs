@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Connections.Features;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using System;
 using System.Threading.Tasks;
 using TrainYourself.API.Configuration;
 using TrainYourself.API.Models;
@@ -9,7 +7,6 @@ using TrainYourself.API.Models;
 namespace TrainYourself.API.Repositories
 {
     public class AuthRepository : IAuthRepository
-
     {
         private readonly IMongoCollection<User> _users;
 
