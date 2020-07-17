@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -52,6 +55,33 @@ namespace TrainYourself.API
                 services.AddSwaggerGen(options =>
                 {
                     options.SwaggerDoc("v1", new OpenApiInfo{Title = "TrainYourself API", Version = "v1"});
+                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        In = ParameterLocation.Header,
+                        Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n 
+                                        Enter 'Bearer' [space] and then your token in the text input below.
+                                        \r\n\r\nExample: 'Bearer 12345abcdef'",
+                        Name = "Authorization",
+                        Type = SecuritySchemeType.ApiKey
+                    });
+
+                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                },
+                                Scheme = "jwt",
+                                Name = "Bearer",
+                                In = ParameterLocation.Header
+                            },
+                            new List<string>()
+                        }
+                    });
                 });
             }
 
@@ -68,8 +98,8 @@ namespace TrainYourself.API
             if (SwaggerEnabled)
             {
                 app.UseSwagger()
-                   .UseSwaggerUI(x =>
-                    {
+                    .UseSwaggerUI(x =>
+                    { 
                         x.SwaggerEndpoint("/swagger/v1/swagger.json", "TrainYourself Api V1");
                     })
                    .UseRewriter(new RewriteOptions().AddRedirect("^$", "swagger"));

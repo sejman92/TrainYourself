@@ -12,7 +12,7 @@ namespace TrainYourself.API.Controllers
     {
         private readonly IAuthService _service;
 
-        public AuthController( IAuthService service)
+        public AuthController(IAuthService service)
         {
             _service = service;
         }
