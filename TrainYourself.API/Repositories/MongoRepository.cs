@@ -21,6 +21,11 @@ namespace TrainYourself.API.Repositories
             _collection = db.GetCollection<TDocument>(CollectionNamePicker.GetCollectionName(typeof(TDocument)));
         }
 
+        public virtual async Task<IEnumerable<TDocument>> GetAll() //should be moved to service ?
+        {
+            return await _collection.Find(Builders<TDocument>.Filter.Empty).ToListAsync();
+        }
+
         public virtual IEnumerable<TDocument> FilterBy(Expression<Func<TDocument, bool>> filterExpression)
         {
             return _collection.Find(filterExpression).ToEnumerable();
